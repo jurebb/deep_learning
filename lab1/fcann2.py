@@ -18,7 +18,7 @@ import tensorflow as tf
 
 tf.set_random_seed(100)
 
-param_niter=200000
+param_niter=100000
 param_delta=0.0005
 param_lambda=1e-3   #regularizacija
 

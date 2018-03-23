@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import data
 
 class TFLogreg:
-  def __init__(self, D, C, param_delta=0.5):
+  def __init__(self, D, C, param_delta=0.5, param_lambda=0.05):
     """Arguments:
        - D: dimensions of each datapoint 
        - C: number of classes
@@ -34,7 +34,7 @@ class TFLogreg:
     # formulacija gubitka: self.loss
     #   koristiti: tf.log, tf.reduce_sum, tf.reduce_mean
     
-    self.loss = tf.reduce_sum(- tf.log(tf.reduce_sum(self.Yoh_ * self.probs, 1)))
+    self.loss = tf.reduce_sum(- tf.log(tf.reduce_sum(self.Yoh_ * self.probs, 1))) + param_lambda*tf.reduce_sum(self.W ** 2)
 
     # formulacija operacije učenja: self.train_step
     #   koristiti: tf.train.GradientDescentOptimizer,

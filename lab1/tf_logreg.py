@@ -62,7 +62,7 @@ class TFLogreg:
     for i in range(param_niter):
         val_loss, _ = self.session.run([self.loss, self.train_step], feed_dict={self.X: X, self.Yoh_: Yoh_})
         if(i%100 == 0):
-            print('diagnostic, loss:', val_loss)
+            print('diagnostic, loss:', i, val_loss)
     #return W, b
 
   def eval(self, X):
@@ -72,8 +72,11 @@ class TFLogreg:
     """
     #   koristiti: tf.Session.run
     probs = self.session.run([self.probs], feed_dict={self.X: X})
-    return probs
-    
+    return probs[0]
+
+def logreg_classify_function(self):
+    return lambda X: np.argmax(self.eval(X), axis=1)
+
 if __name__ == "__main__":
   # inicijaliziraj generatore slučajnih brojeva
   np.random.seed(100)
@@ -91,7 +94,17 @@ if __name__ == "__main__":
 
   # dohvati vjerojatnosti na skupu za učenje
   probs = tflr.eval(X)
-
+  Y = [np.argmax(ps) for ps in probs]
+  
   # ispiši performansu (preciznost i odziv po razredima)
-
+  accuracy, recall, precision = data.eval_perf_multi(Y_, np.array(Y))
+  print('acc:', accuracy, '\n rec', recall)
+  plt.show()
+  
   # iscrtaj rezultate, decizijsku plohu
+  bbox=(np.min(X, axis=0), np.max(X, axis=0))
+  data.graph_surface(logreg_classify_function(tflr), bbox, offset=0.5, width=256, height=256)
+  # graph the data points
+  data.graph_data(X, Y_, Y)
+  # show the plot
+  plt.show()

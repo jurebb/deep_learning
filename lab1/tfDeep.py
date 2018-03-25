@@ -49,7 +49,7 @@ class TFDeep:
     # formulacija gubitka: self.loss
     #   koristiti: tf.log, tf.reduce_sum, tf.reduce_mean
     
-    self.loss = tf.reduce_sum(- tf.log(tf.reduce_sum(self.Yoh_ * self.probs, 1))) + param_lambda * tf.reduce_sum([tf.reduce_sum(x**2) for x in self.W])
+    self.loss = tf.reduce_sum(- tf.log(tf.reduce_sum(self.Yoh_ * self.probs, 1) + 10e-15)) + param_lambda * tf.reduce_sum([tf.reduce_sum(x**2) for x in self.W])
 
     # formulacija operacije učenja: self.train_step
     #   koristiti: tf.train.GradientDescentOptimizer,
@@ -79,6 +79,24 @@ class TFDeep:
         if(i%100 == 0):
             print('deep diagn, loss:', i, val_loss)
     #return W, b
+    
+  def train_ret_w(self, X, Yoh_, param_niter):
+    """Arguments:
+       - X: actual datapoints [NxD]
+       - Yoh_: one-hot encoded labels [NxC]
+       - param_niter: number of iterations
+    """
+    # incijalizacija parametara
+    #   koristiti: tf.initialize_all_variables
+    self.session.run(tf.initialize_all_variables())
+
+    # optimizacijska petlja
+    #   koristiti: tf.Session.run
+    for i in range(param_niter):
+        val_loss, _, W, b = self.session.run([self.loss, self.train_step, self.W, self.b], feed_dict={self.X: X, self.Yoh_: Yoh_})
+        if(i%100 == 0):
+            print('deep diagn, loss:', i, val_loss)
+    return W, b
 
   def eval(self, Xg):
     """Arguments:
@@ -104,6 +122,57 @@ class TFDeep:
 
 def deep_classify_function(self):
     return lambda Xy: np.argmax(self.eval(Xy), axis=1)
+
+def train_mb(self, X, Yoh_, param_niter, n_groups):
+
+      self.session.run(tf.initialize_all_variables())  
+
+      permutation = np.random.permutation(len(X))
+      X, Yoh_ = X[permutation], Yoh_[permutation]
+      fourfifths = int(0.8*len(X))
+      X_train, X_val, y_train, y_val = X[:fourfifths], X[fourfifths:], Yoh_[:fourfifths], Yoh_[fourfifths:]
+
+      y_val = y_val.argmax(1)
+      
+      best_score = 0
+      best_iter = 0
+      
+      n_train = len(X_train)
+      batch_len = int(n_train / n_groups)
+
+      for i in range(param_niter):
+          # izmiješajte podatke, zatim ih podijelite u n grupa (engl. mini-batch) i onda provedite korak učenja za svaku grupu posebno
+          permutation = np.random.permutation(n_train)
+          X_train, y_train = X_train[permutation], y_train[permutation]
+          
+          j=0
+          batches_loss = 0
+          
+          while j in range(n_train):
+              dact, val_loss, _, W, b = self.session.run([self.dact, self.loss, self.train_step, self.W, self.b], feed_dict={self.X: X_train[j:(j+batch_len)], self.Yoh_: y_train[j:(j+batch_len)]})
+              batches_loss += val_loss
+              j += batch_len
+          
+          #batches_loss = batches_loss / 
+          
+          if(i%100 == 0):
+                print('deep, loss:', i, batches_loss)
+              
+          probs = self.eval(X_val)
+          Y = probs.argmax(axis=1)
+          curr_score = accuracy_score(Y, y_val)
+
+          if(curr_score >= best_score):
+              best_score = curr_score
+              best_model = self
+              best_iter = i
+
+          if(i%100 == 0):
+              print('curr score val:', i, curr_score, '\nbest', best_score)
+
+
+      print('best_model', best_score, 'in iter', best_iter)
+      return best_model
 
 if __name__ == "__main__":
   # inicijaliziraj generatore slučajnih brojeva
